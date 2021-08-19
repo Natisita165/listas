@@ -27,9 +27,7 @@ class _listaTareaState extends State<listaTarea> {
 
   @override
   void initState() {
-    _tarea = [
-      tareas("Primera tarea"),
-    ];
+    _tarea = [];
 
     super.initState();
   }
@@ -103,6 +101,7 @@ class _listaTareaState extends State<listaTarea> {
     decoration: (_tarea[index].realizado ? TextDecoration.lineThrough:TextDecoration.none),
     ),
               ),
+            subtitle: Text(_tarea[index].desc),
       ),
         ),
     ),
@@ -115,7 +114,7 @@ class _listaTareaState extends State<listaTarea> {
               )
           ).then((que) {
             setState(() {
-              _tarea.add(tareas(que));
+              _tarea.add(que);
             });
           });
         },
@@ -141,14 +140,17 @@ class nuevaTarea extends StatefulWidget {
 
 class _nuevaTareaState extends State<nuevaTarea> {
   TextEditingController _controller;
+  TextEditingController _controller2;
   @override
   void initState() {
     _controller=TextEditingController();
+    _controller2=TextEditingController();
     super.initState();
   }
   @override
   void dispose() {
     _controller.dispose();
+    _controller2.dispose();
     super.dispose();
   }
   @override
@@ -168,10 +170,21 @@ class _nuevaTareaState extends State<nuevaTarea> {
                 Navigator.of(context).pop(que);
               },
             ),
+            TextField(
+              controller: _controller2,
+              onSubmitted: (que){
+                Navigator.of(context).pop(que);
+              },
+            ),
             RaisedButton(
               child: Text("Agregar"),
               onPressed: (){
-                Navigator.of(context).pop(_controller.text);
+                tareas t=new tareas(_controller.text);
+                t.que=_controller.text;
+                t.desc=_controller2.text;
+               // Navigator.of(context).pop(_controller.text);
+               // Navigator.of(context).pop(_controller2.text);
+                Navigator.of(context).pop(t);
               },
 
                 ),
@@ -179,5 +192,21 @@ class _nuevaTareaState extends State<nuevaTarea> {
         ),
       ),
     );
+  }
+
+}
+class tarea{
+  String _titulo, _descr;
+
+  String get titulo => _titulo;
+
+  set titulo(String value) {
+    _titulo = value;
+  }
+
+  get descr => _descr;
+
+  set descr(value) {
+    _descr = value;
   }
 }
