@@ -83,18 +83,32 @@ class _listaTareaState extends State<listaTarea> {
           itemCount: _tarea.length,
         itemBuilder: (context, index)=>InkWell(
           onTap: (){
-            setState(() {
-              _tarea[index].toggleDone();
+            Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_)=>nuevaTarea(_tarea[index]),
+                )
+            ).then((que) {
+              setState(() {
+                _tarea[index]=que;
+              });
             });
           } ,
           child: ListTile(
-            leading: Checkbox(
+            leading: GestureDetector(
+              onTap: (){
+                setState(() {
+                  _tarea[index].toggleDone();
+                });
+              } ,
+              child: Checkbox(
                 value: _tarea[index].realizado,
                 onChanged: (checked){
                   setState(() {
                     _tarea[index].realizado = checked;
                   });
-                }
+                },
+
+              ),
             ),
                 title: Text(_tarea[index].que,
     style: TextStyle(
@@ -110,7 +124,7 @@ class _listaTareaState extends State<listaTarea> {
         onPressed: (){
           Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_)=>nuevaTarea(),
+                builder: (_)=>nuevaTarea(null),
               )
           ).then((que) {
             setState(() {
@@ -134,6 +148,8 @@ class tareas {
 }
 
 class nuevaTarea extends StatefulWidget {
+  tareas t;
+  nuevaTarea(this.t);
   @override
   _nuevaTareaState createState() => _nuevaTareaState();
 }
@@ -145,6 +161,10 @@ class _nuevaTareaState extends State<nuevaTarea> {
   void initState() {
     _controller=TextEditingController();
     _controller2=TextEditingController();
+    if(widget.t != null){
+      _controller.text=widget.t.que;
+      _controller2.text=widget.t.desc;
+    }
     super.initState();
   }
   @override
