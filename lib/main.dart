@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'Tarea.dart';
 import 'repositorio.dart';
 
 void main() {
@@ -11,7 +12,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Column(
+      home: listaTarea(),
+      /*Column(
         children: <Widget>[
           MaterialButton(
             onPressed: (){
@@ -24,25 +26,12 @@ class MyApp extends StatelessWidget {
             
           )
         ],
-      )
+      )*/
     );
   }
 }
-class listaTarea extends StatefulWidget {
-  const listaTarea({Key key,}): super(key: key);
 
-  @override
-  _listaTareaState createState() => _listaTareaState();
-}
-class _listaTareaState extends State<listaTarea> {
 
-  @override
-  Widget build(BuildContext context) {
-
-  }
-}
-
-/*
 class listaTarea extends StatefulWidget {
   const listaTarea({Key key,}): super(key: key);
 
@@ -51,22 +40,40 @@ class listaTarea extends StatefulWidget {
 }
 
 class _listaTareaState extends State<listaTarea> {
-  List<tareas> _tarea;
+  List<Tarea> _tarea;
   int get _countD => _tarea.where((tareas) => tareas.realizado).length;
-
+  Repositorio rep;
+  void obtenerTareas() async{
+    var te=await rep.getRepositorio();
+    setState(() {
+      _tarea = te;
+    });
+}
   @override
   void initState() {
     _tarea = [];
+    rep = new Repositorio();
+    obtenerTareas();
 
     super.initState();
   }
 
-  _remove(){
-    List<tareas> pending =[];
+  _remove()async{
+    List<Tarea> pending =[];
+    var nt=true;
     for(var tare in _tarea){
-      if(!tare.realizado) pending.add(tare);
+      if(!tare.realizado) {
+        pending.add(tare);
+      }else{
+        nt = await rep.deleteTask(tare);
+        if(nt==false){
+          break;
+        }
+      }
     }
-    setState(() => _tarea = pending);
+    if(nt==true) {
+      setState(() => _tarea = pending);
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -94,9 +101,9 @@ class _listaTareaState extends State<listaTarea> {
               ),
             ],
           ),
-      ).then((borrar){
+      ).then((borrar)async{
         if(borrar){
-          _remove();
+          await _remove();
         }
       });
     }
@@ -105,7 +112,9 @@ class _listaTareaState extends State<listaTarea> {
         title: Text("Tareas Pendientes"),
         actions: <Widget>[
           IconButton(icon: Icon(Icons.delete_forever),
-              onPressed: _pregRemove)
+              onPressed: _pregRemove),
+          IconButton(icon: Icon(Icons.cloud_download),
+              onPressed: obtenerTareas)
         ],
       ),
       body: ListView.builder(
@@ -116,17 +125,21 @@ class _listaTareaState extends State<listaTarea> {
                 MaterialPageRoute(
                   builder: (_)=>nuevaTarea(_tarea[index]),
                 )
-            ).then((que) {
+            ).then((que) async{
+              que.id=_tarea[index].id;
+              var nt=await rep.updateTask(que);
+              if(nt==true){
               setState(() {
                 _tarea[index]=que;
               });
-            });
+            }});
           } ,
           child: ListTile(
             leading: GestureDetector(
               onTap: (){
                 setState(() {
-                  _tarea[index].toggleDone();
+                  _tarea[index].complete();
+                  //_tarea[index].toggleDone();
                 });
               } ,
               child: Checkbox(
@@ -139,12 +152,12 @@ class _listaTareaState extends State<listaTarea> {
 
               ),
             ),
-                title: Text(_tarea[index].que,
+                title: Text(_tarea[index].title,
     style: TextStyle(
     decoration: (_tarea[index].realizado ? TextDecoration.lineThrough:TextDecoration.none),
     ),
               ),
-            subtitle: Text(_tarea[index].desc),
+            subtitle: Text(_tarea[index].detail),
       ),
         ),
     ),
@@ -155,11 +168,15 @@ class _listaTareaState extends State<listaTarea> {
               MaterialPageRoute(
                 builder: (_)=>nuevaTarea(null),
               )
-          ).then((que) {
+          ).then((que) async{
+            var nt = await rep.addTask(que);
+            if(nt==true){
             setState(() {
               _tarea.add(que);
             });
-          });
+          }
+          }
+          );
         },
 
       ),
@@ -168,16 +185,10 @@ class _listaTareaState extends State<listaTarea> {
 }
 
 
-class tareas {
-  String que,desc;
-  bool realizado;
-  tareas(this.que):realizado=false;
 
-  void toggleDone()=>realizado = !realizado;
-}
 
 class nuevaTarea extends StatefulWidget {
-  tareas t;
+  Tarea t;
   nuevaTarea(this.t);
   @override
   _nuevaTareaState createState() => _nuevaTareaState();
@@ -191,8 +202,8 @@ class _nuevaTareaState extends State<nuevaTarea> {
     _controller=TextEditingController();
     _controller2=TextEditingController();
     if(widget.t != null){
-      _controller.text=widget.t.que;
-      _controller2.text=widget.t.desc;
+      _controller.text=widget.t.title;
+      _controller2.text=widget.t.detail;
     }
     super.initState();
   }
@@ -215,22 +226,23 @@ class _nuevaTareaState extends State<nuevaTarea> {
           children: <Widget>[
             TextField(
               controller: _controller,
-              onSubmitted: (que){
+             /* onSubmitted: (que){
                 Navigator.of(context).pop(que);
-              },
+              },*/
             ),
             TextField(
               controller: _controller2,
-              onSubmitted: (que){
+              /*onSubmitted: (que){
                 Navigator.of(context).pop(que);
-              },
+              },*/
             ),
             RaisedButton(
               child: Text("Agregar"),
               onPressed: (){
-                tareas t=new tareas(_controller.text);
-                t.que=_controller.text;
-                t.desc=_controller2.text;
+                Tarea t=new Tarea();
+                t.title=_controller.text;
+                t.detail=_controller2.text;
+                t.realizado = false;
                // Navigator.of(context).pop(_controller.text);
                // Navigator.of(context).pop(_controller2.text);
                 Navigator.of(context).pop(t);
@@ -260,4 +272,4 @@ class tarea{
   }
 }
 
- */
+
