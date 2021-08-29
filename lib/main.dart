@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'repositorio.dart';
 
 void main() {
   runApp(MyApp());
@@ -10,10 +11,38 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: listaTarea()
+      home: Column(
+        children: <Widget>[
+          MaterialButton(
+            onPressed: (){
+              print("boton");
+              Repositorio repositorio = Repositorio();
+              repositorio.getRepositorio();
+            },
+            child: Text("data"),
+            color: Colors.red,
+            
+          )
+        ],
+      )
     );
   }
 }
+class listaTarea extends StatefulWidget {
+  const listaTarea({Key key,}): super(key: key);
+
+  @override
+  _listaTareaState createState() => _listaTareaState();
+}
+class _listaTareaState extends State<listaTarea> {
+
+  @override
+  Widget build(BuildContext context) {
+
+  }
+}
+
+/*
 class listaTarea extends StatefulWidget {
   const listaTarea({Key key,}): super(key: key);
 
@@ -230,3 +259,5 @@ class tarea{
     _descr = value;
   }
 }
+
+ */
